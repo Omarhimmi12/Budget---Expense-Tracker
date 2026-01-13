@@ -1,3 +1,6 @@
+let incomes = [];
+let expenses = [];
+
 function saveToStorage() {
   localStorage.setItem("incomes", JSON.stringify(incomes));
   localStorage.setItem("expenses", JSON.stringify(expenses));
@@ -8,150 +11,123 @@ function loadFromStorage() {
   expenses = JSON.parse(localStorage.getItem("expenses")) || [];
 }
 
-
-var incomes = [];
-
 function addIncome() {
   const sourceInput = document.getElementById("source");
   const amountInput = document.getElementById("amount");
 
-  let source = sourceInput.value.trim();
-  let amount = Number(amountInput.value);
+  const source = sourceInput.value.trim();
+  const amount = Number(amountInput.value);
 
   if (source === "" || isNaN(amount) || amount <= 0) {
-    document.getElementById("income-error").innerHTML = "Please check both fields";
+    document.getElementById("income-error").textContent = "Please check both fields";
     return;
   }
 
-  const income = {
+  incomes.push({
     id: Date.now(),
-    source: source,
-    amount: amount
-  };
+    source,
+    amount
+  });
 
-  incomes.push(income);
   saveToStorage();
   displayIncomes();
+  calculateSummary();
 
-  document.getElementById("income-error").innerHTML = "";
   sourceInput.value = "";
   amountInput.value = "";
-  calculateSummary();
+  document.getElementById("income-error").textContent = "";
 }
 
 function displayIncomes() {
   const ul = document.getElementById("income-list");
   ul.innerHTML = "";
 
-  incomes.forEach(income => {
-    const li = document.createElement("li");
-    li.className = "list-group-item d-flex justify-content-between";
-
-    li.innerHTML = `
-      <div>
-        <span>${income.source}</span> - <span>${income.amount} $</span>
-      </div>
-      <button onclick="deleteIncome(${income.id})" class="btn btn-danger btn-sm">X</button>
+  incomes.forEach(i => {
+    ul.innerHTML += `
+      <li class="list-group-item d-flex justify-content-between">
+        <span>${i.source} - ${i.amount} $</span>
+        <button class="btn btn-danger btn-sm" onclick="deleteIncome(${i.id})">X</button>
+      </li>
     `;
-
-    ul.appendChild(li);
   });
 
   document.getElementById("incomeCount").textContent = incomes.length;
-  calculateSummary();
 }
 
 function deleteIncome(id) {
-  incomes = incomes.filter(income => income.id !== id);
+  incomes = incomes.filter(i => i.id !== id);
   saveToStorage();
   displayIncomes();
   calculateSummary();
 }
 
-
-var expenses = [];
-
 function addExpense() {
   const categoryInput = document.getElementById("category");
   const expenseInput = document.getElementById("expense");
 
-  let category = categoryInput.value.trim();
-  let amount = Number(expenseInput.value);
+  const category = categoryInput.value.trim();
+  const amount = Number(expenseInput.value);
 
   if (category === "" || isNaN(amount) || amount <= 0) {
-    document.getElementById("expense-error").innerHTML = "Please check both fields";
+    document.getElementById("expense-error").textContent = "Please check both fields";
     return;
   }
 
-  const expense = {
+  expenses.push({
     id: Date.now(),
-    category: category,
-    amount: amount
-  };
+    category,
+    amount
+  });
 
-  expenses.push(expense);
   saveToStorage();
   displayExpenses();
+  calculateSummary();
 
-  document.getElementById("expense-error").innerHTML = "";
   categoryInput.value = "";
   expenseInput.value = "";
-  calculateSummary();
+  document.getElementById("expense-error").textContent = "";
 }
 
 function displayExpenses() {
   const ul = document.getElementById("expense-list");
   ul.innerHTML = "";
 
-  expenses.forEach(expense => {
-    const li = document.createElement("li");
-    li.className = "list-group-item d-flex justify-content-between";
-
-    li.innerHTML = `
-      <div>
-        <span>${expense.category}</span> - <span>${expense.amount} $</span>
-      </div>
-      <button onclick="deleteExpense(${expense.id})" class="btn btn-danger btn-sm">X</button>
+  expenses.forEach(e => {
+    ul.innerHTML += `
+      <li class="list-group-item d-flex justify-content-between">
+        <span>${e.category} - ${e.amount} $</span>
+        <button class="btn btn-danger btn-sm" onclick="deleteExpense(${e.id})">X</button>
+      </li>
     `;
-
-    ul.appendChild(li);
   });
 
   document.getElementById("expenseCount").textContent = expenses.length;
-  calculateSummary();
 }
 
 function deleteExpense(id) {
-  expenses = expenses.filter(expense => expense.id !== id);
+  expenses = expenses.filter(e => e.id !== id);
   saveToStorage();
   displayExpenses();
   calculateSummary();
 }
 
 function calculateSummary() {
-  let totalIncome = incomes.reduce((sum, income) => sum + income.amount, 0);
-  let totalExpenses = expenses.reduce((sum, expense) => sum + expense.amount, 0);
-  let balance = totalIncome - totalExpenses;
+  const totalIncome = incomes.reduce((s, i) => s + i.amount, 0);
+  const totalExpenses = expenses.reduce((s, e) => s + e.amount, 0);
+  const balance = totalIncome - totalExpenses;
 
   document.getElementById("total-income").textContent = totalIncome;
   document.getElementById("total-expenses").textContent = totalExpenses;
 
-  const balanceElement = document.getElementById("balance");
-  balanceElement.textContent = balance;
-
-  if (balance >= 5000) {
-    balanceElement.style.color = "green";
-  } else if (balance >= 1000) {
-    balanceElement.style.color = "orange";
-  } else {
-    balanceElement.style.color = "red";
-  }
+  const balanceEl = document.getElementById("balance");
+  balanceEl.textContent = balance;
+  balanceEl.style.color =
+    balance >= 5000 ? "green" : balance >= 1000 ? "orange" : "red";
 }
 
-
-window.onload = function () {
+document.addEventListener("DOMContentLoaded", () => {
   loadFromStorage();
   displayIncomes();
   displayExpenses();
   calculateSummary();
-};
+});
